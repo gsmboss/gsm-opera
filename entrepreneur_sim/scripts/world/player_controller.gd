@@ -21,6 +21,8 @@ var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var _bob_phase := 0.0
 var _head_base_y := 0.0
 var _arms := Node3D.new()
+var _phone: MeshInstance3D
+var _carry := MeshInstance3D.new()
 var _steps := AudioStreamPlayer.new()
 
 
@@ -89,6 +91,20 @@ func _build_arms() -> void:
 	hand.scale = Vector3.ONE * 0.85
 	hand.rotation_degrees = Vector3(-8, -14, -6)
 	_arms.add_child(hand)
+	_phone = hand
+	_carry.position = Vector3(0.12, -0.5, -0.9)
+	_carry.scale = Vector3.ONE * 0.75
+	_carry.rotation_degrees = Vector3(8, -12, 0)
+	_carry.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_carry.visible = false
+	_arms.add_child(_carry)
+
+
+## Shows a carried object (e.g. a delivery box) instead of the phone; null restores the phone.
+func set_carry(mesh: Mesh) -> void:
+	_carry.mesh = mesh
+	_carry.visible = mesh != null
+	_phone.visible = mesh == null
 
 
 func _setup_audio() -> void:

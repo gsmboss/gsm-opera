@@ -9,4 +9,4 @@ display_name = "Back Alley Shop"
 price = 4500.0
 rent_daily = 60.0
 foot_traffic_rating = 2
-allowed_business_types = Array[String](["repair_shop", "tailor"])
+allowed_business_types = Array[String](["grocery", "repair_shop", "tailor"])

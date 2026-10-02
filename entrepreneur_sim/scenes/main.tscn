@@ -10,6 +10,8 @@
 [ext_resource type="Script" path="res://scripts/world/pedestrians.gd" id="8_peds"]
 [ext_resource type="Script" path="res://scripts/world/street_props.gd" id="9_props"]
 [ext_resource type="Script" path="res://scripts/world/day_night.gd" id="10_dn"]
+[ext_resource type="Script" path="res://scripts/world/shop_interior.gd" id="11_int"]
+[ext_resource type="Script" path="res://scripts/ui/shop_ui.gd" id="12_sui"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 sky_top_color = Color(0.32, 0.55, 0.88, 1)
@@ -43,6 +45,7 @@ environment = SubResource("env")
 [node name="Sun" type="DirectionalLight3D" parent="."]
 rotation_degrees = Vector3(-50, 30, 0)
 light_energy = 1.0
+light_cull_mask = 4294967293
 
 [node name="City" type="Node3D" parent="."]
 script = ExtResource("1_city")
@@ -86,6 +89,14 @@ sun = NodePath("../Sun")
 world_env = NodePath("../WorldEnvironment")
 city = NodePath("../City")
 
+[node name="ShopInterior" type="Node3D" parent="." node_paths=PackedStringArray("player", "city", "building_ui", "shop_ui")]
+position = Vector3(0, 0, 3000)
+script = ExtResource("11_int")
+player = NodePath("../Player")
+city = NodePath("../City")
+building_ui = NodePath("../HUDLayer/MobileBuildingUI")
+shop_ui = NodePath("../HUDLayer/ShopUI")
+
 [node name="HUDLayer" type="CanvasLayer" parent="."]
 
 [node name="TouchControls" type="Control" parent="HUDLayer"]
@@ -106,3 +117,13 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("6_ui")
+
+[node name="ShopUI" type="Control" parent="HUDLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("12_sui")

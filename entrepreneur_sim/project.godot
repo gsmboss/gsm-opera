@@ -12,6 +12,7 @@ run/main_scene="res://scenes/main.tscn"
 
 EconomyManager="*res://autoload/economy_manager.gd"
 PropertyManager="*res://autoload/property_manager.gd"
+BusinessManager="*res://autoload/business_manager.gd"
 
 [display]
 

@@ -8,7 +8,6 @@ signal action_failed(building_id: String, reason: String)
 
 enum Tenure { NONE, OWNED, RENTED }
 
-const INCOME_PER_TRAFFIC := 45.0 # daily income per foot-traffic star
 
 var _catalog: Dictionary[String, BuildingData] = {}
 var _tenure: Dictionary[String, Tenure] = {} # only non-NONE stored
@@ -103,16 +102,13 @@ func start_business(id: String, business_type: String) -> bool:
 
 # --- Internals ----------------------------------------------------------------
 
-## Rebuilds recurring rent/income for one building from current state.
+## Rebuilds recurring rent for one building. (Business income comes from real sales: BusinessManager.)
 func _sync_daily(id: String) -> void:
 	var data := get_building(id)
 	if data == null:
 		return
 	var rented := get_tenure(id) == Tenure.RENTED
-	var has_biz := is_controlled(id) and _business.has(id)
 	EconomyManager.set_daily_expense(_rent_key(id), data.rent_daily if rented else 0.0)
-	EconomyManager.set_daily_income(_income_key(id),
-		data.foot_traffic_rating * INCOME_PER_TRAFFIC if has_biz else 0.0)
 
 
 func _fail(id: String, reason: String) -> bool:
@@ -123,6 +119,3 @@ func _fail(id: String, reason: String) -> bool:
 func _rent_key(id: String) -> String:
 	return "rent:" + id
 
-
-func _income_key(id: String) -> String:
-	return "biz:" + id

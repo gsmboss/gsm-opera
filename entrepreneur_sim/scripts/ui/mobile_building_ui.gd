@@ -3,6 +3,8 @@ extends Control
 ## Touch HUD: money readout, context "interact" button, building bottom sheet.
 ## Built in code (no .tscn needed). Attach to a full-rect Control under a CanvasLayer.
 
+signal enter_shop_requested(building_id: String)
+
 const TOUCH_MIN := 96.0       # ~48dp at typical phone scale
 const SHEET_MAX_WIDTH := 760.0
 const FONT_SIZE := 28
@@ -26,6 +28,7 @@ var _buy_btn := Button.new()
 var _rent_btn := Button.new()
 var _types_box := HFlowContainer.new()
 var _start_btn := Button.new()
+var _inside_btn := Button.new()
 var _toast := Label.new()
 
 
@@ -137,6 +140,11 @@ func _build() -> void:
 	_start_btn.text = "Start Business"
 	col.add_child(_start_btn)
 
+	_style_touch(_inside_btn)
+	_inside_btn.text = "Go inside  ▶"
+	_inside_btn.add_theme_color_override("font_color", Color("ffd166"))
+	col.add_child(_inside_btn)
+
 	_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_toast.modulate = Color(1, 0.55, 0.5, 0)
 	col.add_child(_toast)
@@ -171,6 +179,7 @@ func _connect_signals() -> void:
 	_buy_btn.pressed.connect(_on_buy)
 	_rent_btn.pressed.connect(_on_rent)
 	_start_btn.pressed.connect(_on_start)
+	_inside_btn.pressed.connect(_on_go_inside)
 	EconomyManager.money_changed.connect(_on_money_changed)
 	PropertyManager.building_purchased.connect(_on_property_event.unbind(1))
 	PropertyManager.building_rented.connect(_on_property_event.unbind(1))
@@ -258,6 +267,7 @@ func _refresh() -> void:
 	_rent_btn.disabled = tenure != PropertyManager.Tenure.NONE or money < d.rent_daily
 	_start_btn.disabled = tenure == PropertyManager.Tenure.NONE \
 		or _selected_type.is_empty() or _selected_type == biz
+	_inside_btn.visible = not biz.is_empty()
 
 
 # --- Handlers -----------------------------------------------------------------
@@ -275,6 +285,14 @@ func _on_rent() -> void:
 func _on_start() -> void:
 	if _spot and not _selected_type.is_empty():
 		PropertyManager.start_business(_spot.get_building_id(), _selected_type)
+
+
+func _on_go_inside() -> void:
+	if _spot == null:
+		return
+	var id := _spot.get_building_id()
+	_sheet.hide()
+	enter_shop_requested.emit(id)
 
 
 func _on_type_pressed(b: Button) -> void:

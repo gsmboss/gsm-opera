@@ -9,4 +9,4 @@ display_name = "Corner Café"
 price = 12000.0
 rent_daily = 150.0
 foot_traffic_rating = 4
-allowed_business_types = Array[String](["cafe", "bakery", "bookstore"])
+allowed_business_types = Array[String](["grocery", "cafe", "bakery", "bookstore"])
