@@ -22,6 +22,7 @@ const ROADS := "|-Ll+"
 const GROUND_Y := 0.06 # model-space top of pavement/grass (road = 0)
 const SHOP_MODEL := "building-small-d" # green awning = storefront
 const DIRS: Array[Vector2i] = [Vector2i(0, 1), Vector2i(1, 0), Vector2i(0, -1), Vector2i(-1, 0)]
+const LAMP_HEAD := Vector3(0.3, 0.5, 0.0) # model-space lamp bulb (mirrored on -X)
 
 @export var tile_size := 8.0 # metres per tile (models are 1x1)
 @export var curb_height := 0.15 # metres; model ground layer (0..0.06) is squashed to this
@@ -41,6 +42,11 @@ Tgp|ppppp|pcT
 Tdb|acgdb|baT
 tTt|TtTtT|tTt"""
 
+## Filled during _ready; read by traffic, pedestrians, props, day/night.
+var lamp_heads := PackedVector3Array()
+var crossings: Array[Vector2i] = []
+var shops: Array[Dictionary] = [] # {data: BuildingData, pos: Vector3, dir: Vector2i}
+
 var _rows: PackedStringArray
 var _xforms: Dictionary[String, Array] = {} # model -> Array[Transform3D]
 var _body: StaticBody3D
@@ -58,13 +64,45 @@ func _ready() -> void:
 	_add_ground_and_bounds()
 
 
+# --- Map queries ----------------------------------------------------------------
+
 ## Tile (c, r) -> world position of tile centre (map centred on origin).
 func tile_to_world(c: int, r: int) -> Vector3:
-	return Vector3((c - (_cols() - 1) * 0.5) * tile_size, 0.0, (r - (_rows.size() - 1) * 0.5) * tile_size)
+	return Vector3((c - (cols() - 1) * 0.5) * tile_size, 0.0, (r - (rows() - 1) * 0.5) * tile_size)
 
 
-func _cols() -> int:
+func world_to_tile(p: Vector3) -> Vector2i:
+	return Vector2i(roundi(p.x / tile_size + (cols() - 1) * 0.5), roundi(p.z / tile_size + (rows() - 1) * 0.5))
+
+
+func cols() -> int:
 	return _rows[0].length()
+
+
+func rows() -> int:
+	return _rows.size()
+
+
+func char_at(c: int, r: int) -> String:
+	if r < 0 or r >= _rows.size() or c < 0 or c >= _rows[r].length():
+		return ""
+	return _rows[r][c]
+
+
+func is_road(t: Vector2i) -> bool:
+	var ch := char_at(t.x, t.y)
+	return not ch.is_empty() and ROADS.contains(ch)
+
+
+func is_crossing(t: Vector2i) -> bool:
+	return char_at(t.x, t.y) == "+"
+
+
+func is_walkable(t: Vector2i) -> bool:
+	return char_at(t.x, t.y) == "p"
+
+
+# --- Build ----------------------------------------------------------------------
 
 
 func _place(c: int, r: int, ch: String) -> void:
@@ -86,23 +124,29 @@ func _place(c: int, r: int, ch: String) -> void:
 	var xf := Transform3D(Basis(Vector3.UP, yaw), pos) # unscaled: mesh is pre-scaled
 	_xforms.get_or_add(model, []).append(xf)
 	_add_collider(model, pos)
+	if ch == "+":
+		crossings.append(Vector2i(c, r))
+	elif ch == "L" or ch == "l":
+		for sx in [-1.0, 1.0]:
+			lamp_heads.append(xf * _model_to_world(Vector3(LAMP_HEAD.x * sx, LAMP_HEAD.y, LAMP_HEAD.z)))
 	if shop_idx >= 0 and shop_idx < shop_data.size():
+		shops.append({data = shop_data[shop_idx], pos = pos, dir = dir})
 		_add_spot(shop_data[shop_idx], pos + Vector3(dir.x, 0, dir.y) * tile_size * 0.85)
+
+
+## Model-space point -> tile-local metres (same remap as _scaled_mesh).
+func _model_to_world(p: Vector3) -> Vector3:
+	var y := p.y * curb_height / GROUND_Y if p.y <= GROUND_Y else p.y * tile_size - (GROUND_Y * tile_size - curb_height)
+	return Vector3(p.x * tile_size, y, p.z * tile_size)
 
 
 ## Direction to the nearest road within 2 tiles (prefers distance 1).
 func _face_road(c: int, r: int) -> Vector2i:
 	for dist in [1, 2]:
 		for d in DIRS:
-			if ROADS.contains(_char_at(c + d.x * dist, r + d.y * dist)):
+			if is_road(Vector2i(c, r) + d * dist):
 				return d
 	return DIRS[0]
-
-
-func _char_at(c: int, r: int) -> String:
-	if r < 0 or r >= _rows.size() or c < 0 or c >= _rows[r].length():
-		return ""
-	return _rows[r][c]
 
 
 func _build_multimesh(model: String, xforms: Array) -> void:
@@ -178,7 +222,7 @@ func _add_spot(data: BuildingData, pos: Vector3) -> void:
 
 ## Walkable floor at tile-top height, far grass plane to the horizon, edge walls.
 func _add_ground_and_bounds() -> void:
-	var w := _cols() * tile_size
+	var w := cols() * tile_size
 	var h := _rows.size() * tile_size
 	var top := curb_height * 0.5 # between asphalt (0) and sidewalk
 	_add_box(Vector3(w, 1.0, h), Vector3(0, top - 0.5, 0))

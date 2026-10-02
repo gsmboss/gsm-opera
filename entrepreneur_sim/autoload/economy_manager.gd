@@ -7,7 +7,8 @@ signal transaction_failed(amount: float)
 signal went_into_debt(balance: float)
 
 const SAVE_PATH := "user://player.res"
-const SECONDS_PER_DAY := 60.0
+const SECONDS_PER_DAY := 240.0 # real seconds per game day (also drives day/night)
+const START_HOUR := 7.0 # clock time when a new day (rent tick) begins
 
 var player: PlayerData
 var day: int = 1
@@ -59,6 +60,21 @@ func set_daily_expense(key: String, amount: float) -> void:
 ## Recurring daily revenue (e.g. business). amount <= 0 removes it.
 func set_daily_income(key: String, amount: float) -> void:
 	_set_entry(_daily_income, key, amount)
+
+
+## 0..1 through the current game day.
+func get_day_progress() -> float:
+	return 1.0 - _timer.time_left / _timer.wait_time if _timer else 0.0
+
+
+## In-game hour 0..24 (day starts at START_HOUR).
+func get_hour() -> float:
+	return fmod(START_HOUR + get_day_progress() * 24.0, 24.0)
+
+
+func get_clock_text() -> String:
+	var h := get_hour()
+	return "Day %d  %02d:%02d" % [day, int(h), int(fmod(h, 1.0) * 60.0)]
 
 
 func get_daily_net() -> float:

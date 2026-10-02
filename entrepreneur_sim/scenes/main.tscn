@@ -6,6 +6,10 @@
 [ext_resource type="Script" path="res://scripts/world/player_controller.gd" id="4_pc"]
 [ext_resource type="Script" path="res://scripts/ui/touch_controls.gd" id="5_tc"]
 [ext_resource type="Script" path="res://scripts/ui/mobile_building_ui.gd" id="6_ui"]
+[ext_resource type="Script" path="res://scripts/world/traffic.gd" id="7_traffic"]
+[ext_resource type="Script" path="res://scripts/world/pedestrians.gd" id="8_peds"]
+[ext_resource type="Script" path="res://scripts/world/street_props.gd" id="9_props"]
+[ext_resource type="Script" path="res://scripts/world/day_night.gd" id="10_dn"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 sky_top_color = Color(0.32, 0.55, 0.88, 1)
@@ -60,6 +64,27 @@ position = Vector3(0, 0.7, 0)
 current = true
 fov = 70.0
 far = 250.0
+
+[node name="Traffic" type="Node3D" parent="." node_paths=PackedStringArray("city", "player")]
+script = ExtResource("7_traffic")
+city = NodePath("../City")
+player = NodePath("../Player")
+
+[node name="Pedestrians" type="Node3D" parent="." node_paths=PackedStringArray("city", "player")]
+script = ExtResource("8_peds")
+city = NodePath("../City")
+player = NodePath("../Player")
+
+[node name="StreetProps" type="Node3D" parent="." node_paths=PackedStringArray("city", "traffic")]
+script = ExtResource("9_props")
+city = NodePath("../City")
+traffic = NodePath("../Traffic")
+
+[node name="DayNight" type="Node" parent="." node_paths=PackedStringArray("sun", "world_env", "city")]
+script = ExtResource("10_dn")
+sun = NodePath("../Sun")
+world_env = NodePath("../WorldEnvironment")
+city = NodePath("../City")
 
 [node name="HUDLayer" type="CanvasLayer" parent="."]
 

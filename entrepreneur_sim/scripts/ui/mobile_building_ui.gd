@@ -16,6 +16,7 @@ var _toast_tween: Tween
 
 var _safe := MarginContainer.new()
 var _money_label := Label.new()
+var _clock_label := Label.new()
 var _interact_btn := Button.new()
 var _sheet := PanelContainer.new()
 var _title := Label.new()
@@ -62,6 +63,17 @@ func _build() -> void:
 	_money_label.position = Vector2(8, 8)
 	_money_label.add_theme_font_size_override("font_size", FONT_SIZE + 6)
 	root.add_child(_money_label)
+	_clock_label.position = Vector2(8, 56)
+	_clock_label.add_theme_font_size_override("font_size", FONT_SIZE - 4)
+	for lbl: Label in [_money_label, _clock_label]: # readable over bright sky
+		lbl.add_theme_constant_override("outline_size", 8)
+		lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.6))
+	root.add_child(_clock_label)
+	var clock_timer := Timer.new()
+	clock_timer.wait_time = 0.5
+	clock_timer.autostart = true
+	clock_timer.timeout.connect(func() -> void: _clock_label.text = EconomyManager.get_clock_text())
+	add_child(clock_timer)
 
 	# Interact button (bottom-right, thumb zone)
 	_interact_btn.text = "Enter"

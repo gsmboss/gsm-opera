@@ -1,0 +1,3 @@
+Vehicle models from Kenney "Starter Kit Racing"
+https://github.com/KenneyNL/Starter-Kit-Racing
+Models are CC0 (public domain). Credit (optional): Kenney (www.kenney.nl)
