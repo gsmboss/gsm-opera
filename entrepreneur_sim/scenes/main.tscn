@@ -1,0 +1,129 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/city_builder.gd" id="1_city"]
+[ext_resource type="Resource" path="res://data/buildings/corner_cafe.tres" id="2_cafe"]
+[ext_resource type="Resource" path="res://data/buildings/back_alley_shop.tres" id="3_shop"]
+[ext_resource type="Script" path="res://scripts/world/player_controller.gd" id="4_pc"]
+[ext_resource type="Script" path="res://scripts/ui/touch_controls.gd" id="5_tc"]
+[ext_resource type="Script" path="res://scripts/ui/mobile_building_ui.gd" id="6_ui"]
+[ext_resource type="Script" path="res://scripts/world/traffic.gd" id="7_traffic"]
+[ext_resource type="Script" path="res://scripts/world/pedestrians.gd" id="8_peds"]
+[ext_resource type="Script" path="res://scripts/world/street_props.gd" id="9_props"]
+[ext_resource type="Script" path="res://scripts/world/day_night.gd" id="10_dn"]
+[ext_resource type="Script" path="res://scripts/world/shop_interior.gd" id="11_int"]
+[ext_resource type="Script" path="res://scripts/ui/shop_ui.gd" id="12_sui"]
+
+[sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
+sky_top_color = Color(0.32, 0.55, 0.88, 1)
+sky_horizon_color = Color(0.72, 0.82, 0.92, 1)
+ground_bottom_color = Color(0.36, 0.5, 0.42, 1)
+ground_horizon_color = Color(0.72, 0.82, 0.92, 1)
+
+[sub_resource type="Sky" id="sky"]
+sky_material = SubResource("sky_mat")
+
+[sub_resource type="Environment" id="env"]
+background_mode = 2
+sky = SubResource("sky")
+ambient_light_source = 3
+ambient_light_energy = 0.6
+tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.72, 0.82, 0.92, 1)
+fog_density = 0.006
+fog_sky_affect = 0.0
+
+[sub_resource type="CapsuleShape3D" id="player_shape"]
+radius = 0.35
+height = 1.8
+
+[node name="Main" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("env")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-50, 30, 0)
+light_energy = 1.0
+light_cull_mask = 4294967293
+
+[node name="City" type="Node3D" parent="."]
+script = ExtResource("1_city")
+shop_data = Array[Resource]([ExtResource("2_cafe"), ExtResource("3_shop")])
+
+[node name="Player" type="CharacterBody3D" parent="." node_paths=PackedStringArray("touch_controls")]
+position = Vector3(0, 1.2, 14)
+collision_layer = 2
+script = ExtResource("4_pc")
+touch_controls = NodePath("../HUDLayer/TouchControls")
+
+[node name="Shape" type="CollisionShape3D" parent="Player"]
+shape = SubResource("player_shape")
+
+[node name="Head" type="Node3D" parent="Player"]
+position = Vector3(0, 0.7, 0)
+
+[node name="Camera3D" type="Camera3D" parent="Player/Head"]
+current = true
+fov = 70.0
+far = 250.0
+
+[node name="Traffic" type="Node3D" parent="." node_paths=PackedStringArray("city", "player")]
+script = ExtResource("7_traffic")
+city = NodePath("../City")
+player = NodePath("../Player")
+
+[node name="Pedestrians" type="Node3D" parent="." node_paths=PackedStringArray("city", "player")]
+script = ExtResource("8_peds")
+city = NodePath("../City")
+player = NodePath("../Player")
+
+[node name="StreetProps" type="Node3D" parent="." node_paths=PackedStringArray("city", "traffic")]
+script = ExtResource("9_props")
+city = NodePath("../City")
+traffic = NodePath("../Traffic")
+
+[node name="DayNight" type="Node" parent="." node_paths=PackedStringArray("sun", "world_env", "city")]
+script = ExtResource("10_dn")
+sun = NodePath("../Sun")
+world_env = NodePath("../WorldEnvironment")
+city = NodePath("../City")
+
+[node name="ShopInterior" type="Node3D" parent="." node_paths=PackedStringArray("player", "city", "building_ui", "shop_ui")]
+position = Vector3(0, 0, 3000)
+script = ExtResource("11_int")
+player = NodePath("../Player")
+city = NodePath("../City")
+building_ui = NodePath("../HUDLayer/MobileBuildingUI")
+shop_ui = NodePath("../HUDLayer/ShopUI")
+
+[node name="HUDLayer" type="CanvasLayer" parent="."]
+
+[node name="TouchControls" type="Control" parent="HUDLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("5_tc")
+
+[node name="MobileBuildingUI" type="Control" parent="HUDLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("6_ui")
+
+[node name="ShopUI" type="Control" parent="HUDLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("12_sui")
