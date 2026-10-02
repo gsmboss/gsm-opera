@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="BuildingData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/building_data.gd" id="1_bd"]
+
+[resource]
+script = ExtResource("1_bd")
+building_id = "back_alley_shop"
+display_name = "Back Alley Shop"
+price = 4500.0
+rent_daily = 60.0
+foot_traffic_rating = 2
+allowed_business_types = Array[String](["repair_shop", "tailor"])
