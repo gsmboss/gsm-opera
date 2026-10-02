@@ -1,0 +1,4 @@
+3D models from Kenney "Starter Kit City Builder"
+https://github.com/KenneyNL/Starter-Kit-City-Builder
+Models are CC0 (public domain): https://creativecommons.org/publicdomain/zero/1.0/
+Credit (optional): Kenney (www.kenney.nl)
