@@ -10,9 +10,9 @@ enum Tenure { NONE, OWNED, RENTED }
 
 const INCOME_PER_TRAFFIC := 45.0 # daily income per foot-traffic star
 
-var _catalog: Dictionary = {}  # id -> BuildingData
-var _tenure: Dictionary = {}   # id -> Tenure (only non-NONE stored)
-var _business: Dictionary = {} # id -> business_type
+var _catalog: Dictionary[String, BuildingData] = {}
+var _tenure: Dictionary[String, Tenure] = {} # only non-NONE stored
+var _business: Dictionary[String, String] = {}
 
 
 func _ready() -> void:

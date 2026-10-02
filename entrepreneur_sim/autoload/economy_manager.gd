@@ -13,8 +13,8 @@ var player: PlayerData
 var day: int = 1
 
 var _timer: Timer
-var _daily_expenses: Dictionary = {} # key(String) -> float
-var _daily_income: Dictionary = {}   # key(String) -> float
+var _daily_expenses: Dictionary[String, float] = {}
+var _daily_income: Dictionary[String, float] = {}
 
 
 func _ready() -> void:
@@ -82,14 +82,14 @@ func _on_day_tick() -> void:
 	day_passed.emit(day)
 
 
-func _set_entry(dict: Dictionary, key: String, amount: float) -> void:
+func _set_entry(dict: Dictionary[String, float], key: String, amount: float) -> void:
 	if amount > 0.0:
 		dict[key] = amount
 	else:
 		dict.erase(key)
 
 
-func _sum(dict: Dictionary) -> float:
+func _sum(dict: Dictionary[String, float]) -> float:
 	var total := 0.0
 	for v: float in dict.values():
 		total += v

@@ -6,7 +6,7 @@ extends Resource
 @export var owned_building_ids: Array[String] = []
 @export var active_outfit_id: String = "default"
 @export var rented_building_ids: Array[String] = []
-@export var businesses: Dictionary = {} # building_id -> business_type
+@export var businesses: Dictionary[String, String] = {} # building_id -> business_type
 
 
 func can_afford(amount: float) -> bool:
