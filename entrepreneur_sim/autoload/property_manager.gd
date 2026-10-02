@@ -16,9 +16,13 @@ var _business: Dictionary = {} # id -> business_type
 
 
 func _ready() -> void:
-	# Restore ownership from save (catalog fills in later as spots register).
-	for id: String in EconomyManager.player.owned_building_ids:
+	# Restore from save; daily rent/income rebuilt when each building registers.
+	var p := EconomyManager.player
+	for id: String in p.rented_building_ids:
+		_tenure[id] = Tenure.RENTED
+	for id: String in p.owned_building_ids:
 		_tenure[id] = Tenure.OWNED
+	_business = p.businesses # shared ref: writes persist on save
 
 
 # --- Catalog ------------------------------------------------------------------
@@ -27,6 +31,7 @@ func _ready() -> void:
 func register_building(data: BuildingData) -> void:
 	if data and not data.building_id.is_empty():
 		_catalog[data.building_id] = data
+		_sync_daily(data.building_id)
 
 
 func get_building(id: String) -> BuildingData:
@@ -57,8 +62,9 @@ func purchase(id: String) -> bool:
 	if not EconomyManager.spend(data.price):
 		return _fail(id, "Not enough money")
 	_tenure[id] = Tenure.OWNED
-	EconomyManager.set_daily_expense(_rent_key(id), 0.0)
+	EconomyManager.player.rented_building_ids.erase(id)
 	EconomyManager.player.owned_building_ids.append(id)
+	_sync_daily(id)
 	building_purchased.emit(id)
 	return true
 
@@ -73,7 +79,8 @@ func rent(id: String) -> bool:
 	if not EconomyManager.spend(data.rent_daily):
 		return _fail(id, "Not enough money")
 	_tenure[id] = Tenure.RENTED
-	EconomyManager.set_daily_expense(_rent_key(id), data.rent_daily)
+	EconomyManager.player.rented_building_ids.append(id)
+	_sync_daily(id)
 	building_rented.emit(id)
 	return true
 
@@ -89,12 +96,24 @@ func start_business(id: String, business_type: String) -> bool:
 	if get_business(id) == business_type:
 		return _fail(id, "Already running")
 	_business[id] = business_type
-	EconomyManager.set_daily_income(_income_key(id), data.foot_traffic_rating * INCOME_PER_TRAFFIC)
+	_sync_daily(id)
 	business_started.emit(id, business_type)
 	return true
 
 
 # --- Internals ----------------------------------------------------------------
+
+## Rebuilds recurring rent/income for one building from current state.
+func _sync_daily(id: String) -> void:
+	var data := get_building(id)
+	if data == null:
+		return
+	var rented := get_tenure(id) == Tenure.RENTED
+	var has_biz := is_controlled(id) and _business.has(id)
+	EconomyManager.set_daily_expense(_rent_key(id), data.rent_daily if rented else 0.0)
+	EconomyManager.set_daily_income(_income_key(id),
+		data.foot_traffic_rating * INCOME_PER_TRAFFIC if has_biz else 0.0)
+
 
 func _fail(id: String, reason: String) -> bool:
 	action_failed.emit(id, reason)

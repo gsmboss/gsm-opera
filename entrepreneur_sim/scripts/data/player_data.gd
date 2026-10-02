@@ -5,6 +5,8 @@ extends Resource
 @export var money: float = 5000.0
 @export var owned_building_ids: Array[String] = []
 @export var active_outfit_id: String = "default"
+@export var rented_building_ids: Array[String] = []
+@export var businesses: Dictionary = {} # building_id -> business_type
 
 
 func can_afford(amount: float) -> bool:

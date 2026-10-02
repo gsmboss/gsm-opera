@@ -1,0 +1,106 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/player_controller.gd" id="1_pc"]
+[ext_resource type="Script" path="res://scripts/world/building_spot.gd" id="2_bs"]
+[ext_resource type="Resource" path="res://data/buildings/corner_cafe.tres" id="3_cafe"]
+[ext_resource type="Resource" path="res://data/buildings/back_alley_shop.tres" id="4_shop"]
+[ext_resource type="Script" path="res://scripts/ui/mobile_building_ui.gd" id="5_ui"]
+
+[sub_resource type="BoxShape3D" id="ground_shape"]
+size = Vector3(60, 1, 60)
+
+[sub_resource type="StandardMaterial3D" id="ground_mat"]
+albedo_color = Color(0.35, 0.55, 0.35, 1)
+
+[sub_resource type="PlaneMesh" id="ground_mesh"]
+material = SubResource("ground_mat")
+size = Vector2(60, 60)
+
+[sub_resource type="CapsuleShape3D" id="player_shape"]
+
+[sub_resource type="StandardMaterial3D" id="player_mat"]
+albedo_color = Color(0.95, 0.75, 0.3, 1)
+
+[sub_resource type="CapsuleMesh" id="player_mesh"]
+material = SubResource("player_mat")
+
+[sub_resource type="StandardMaterial3D" id="cafe_mat"]
+albedo_color = Color(0.8, 0.45, 0.35, 1)
+
+[sub_resource type="BoxMesh" id="cafe_mesh"]
+material = SubResource("cafe_mat")
+size = Vector3(5, 4, 4)
+
+[sub_resource type="StandardMaterial3D" id="shop_mat"]
+albedo_color = Color(0.45, 0.5, 0.75, 1)
+
+[sub_resource type="BoxMesh" id="shop_mesh"]
+material = SubResource("shop_mat")
+size = Vector3(4, 3, 4)
+
+[sub_resource type="BoxShape3D" id="spot_shape"]
+size = Vector3(4, 2, 2.5)
+
+[node name="Main" type="Node3D"]
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 10, 0)
+
+[node name="Ground" type="StaticBody3D" parent="."]
+
+[node name="Shape" type="CollisionShape3D" parent="Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("ground_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="Ground"]
+mesh = SubResource("ground_mesh")
+
+[node name="Player" type="CharacterBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 4)
+collision_layer = 2
+script = ExtResource("1_pc")
+
+[node name="Shape" type="CollisionShape3D" parent="Player"]
+shape = SubResource("player_shape")
+
+[node name="Body" type="MeshInstance3D" parent="Player"]
+mesh = SubResource("player_mesh")
+
+[node name="Camera3D" type="Camera3D" parent="Player"]
+current = true
+
+[node name="CornerCafe" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 2, -6)
+mesh = SubResource("cafe_mesh")
+
+[node name="CafeSpot" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 1, -2.75)
+script = ExtResource("2_bs")
+data = ExtResource("3_cafe")
+
+[node name="Shape" type="CollisionShape3D" parent="CafeSpot"]
+shape = SubResource("spot_shape")
+
+[node name="BackAlleyShop" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1.5, -6)
+mesh = SubResource("shop_mesh")
+
+[node name="ShopSpot" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1, -2.75)
+script = ExtResource("2_bs")
+data = ExtResource("4_shop")
+
+[node name="Shape" type="CollisionShape3D" parent="ShopSpot"]
+shape = SubResource("spot_shape")
+
+[node name="HUDLayer" type="CanvasLayer" parent="."]
+
+[node name="MobileBuildingUI" type="Control" parent="HUDLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("5_ui")
